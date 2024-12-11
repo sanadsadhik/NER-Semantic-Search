@@ -54,7 +54,7 @@ df = df.iloc[0:30]
 df = df.dropna()
 df['text_extended'] = df['title']+"."+df['text'].str[:1000]
 
-# batch_size = 64
+batch_size = 64
 batch_size = 10
 for i in range(0,len(df),batch_size):
     i_end = min(i+batch_size,len(df))
@@ -76,3 +76,15 @@ for i in range(0,len(df),batch_size):
     vectors_to_upsert = list(zip(ids,emb,metadata))
     idx.upsert(vectors=vectors_to_upsert)
 
+query = "What are the FDA banned chemicals?"
+emb_qx = retriever.encode(query).tolist()
+ne = extract_entities([query])[0]
+# print(ne)
+xc = idx.query(
+    vector=emb_qx, 
+    top_k=1,
+    include_metadata=True, 
+    filter={"named_entity": {"$in":ne}}
+)
+
+print(xc)
